@@ -1,0 +1,66 @@
+name: windows-build
+
+# Windows makine yokken Windows derlemesini dogrulayan CI.
+# Her main push'unda: analyze + test + `flutter build windows --release`.
+# Basarili derleme artifact olarak saklanir (imzasiz; release islemi elle yapilir).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'windows/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/windows-build.yml'
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'windows/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: JDK 21 (Temurin) kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Flutter 3.47.4 kur
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: stable
+          cache: true
+
+      - name: Surumleri goster
+        run: flutter --version
+
+      - name: Bagimliliklar
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Windows release derle
+        run: flutter build windows --release
+
+      - name: Derlemeyi sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-management-windows-x64
+          path: build/windows/x64/runner/Release/
+          retention-days: 14
