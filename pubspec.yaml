@@ -1,0 +1,44 @@
+name: inventory_management
+description: Windows, Linux ve Android platformlarinda yerel calisan, cevrimdisi oncelikli envanter yonetim uygulamasi.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Yerel veritabani (mobil) + masaustu (Windows/Linux) destegi
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
+
+  # Dosya yollari ve uygulama veri klasoru erisimi
+  path: ^1.9.0
+  path_provider: ^2.1.0
+
+  # Gorsel secimi: kamera/galeri (mobil) + dosya secici (masaustu)
+  image_picker: ^1.0.0
+  file_picker: ^10.0.0
+
+  # Durum yonetimi
+  provider: ^6.1.0
+
+  # Tarih bicimlendirme (Turkce yerellestirme icin)
+  intl: ^0.19.0
+
+  # Yerel gorsel dosya adlari icin benzersiz kimlik
+  uuid: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
