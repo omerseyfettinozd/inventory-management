@@ -4,14 +4,36 @@ Windows, Linux ve Android üzerinde yerel çalışan, çevrimdışı öncelikli
 (offline-first) envanter yönetim uygulaması. Tek kod tabanı (Flutter/Dart),
 yerel SQLite, yalnızca karanlık mod.
 
+## Hazır sürüm (kurulum)
+
+**Linux — tek komutla kur + çalıştır:**
+
+```sh
+mkdir -p ~/Apps/envanter && curl -sL https://github.com/omerseyfettinozd/inventory-management/releases/latest/download/inventory-management-linux-x64.tar.gz | tar -xz -C ~/Apps/envanter && ~/Apps/envanter/inventory_management
+```
+
+Kurulum gerekmez; dosya `~/Apps/envanter/` altında durur, çalıştırdıkça
+veriler `~/.local/share/inventory_management/` altında oluşur.
+
+**Android:** [Releases](https://github.com/omerseyfettinozd/inventory-management/releases)
+sayfasından `inventory-management-android.apk` dosyasını telefona indirip açın
+(bilinmeyen kaynaklara bir kez izin gerekir).
+
+**Windows:** `flutter build windows` çıktısı Releases'e eklenir
+(Windows makinede derlenir, bkz. Derleme).
+
 ## Özellikler
 
 - Hiyerarşik kategori ağacı (sınırsız derinlik, klasör mantığı, `parent_id`).
 - Ürün ekleme: görsel (galeri/kamera/kamera yerine masaüstünde dosya seçici),
   isim, çok satırlı açıklama, adet (negatif engelleme), kategori konumu.
 - Ürün formundan ayrılmadan "Kategori Ekle" modalı (isim + üst kategori seçimi).
-- Envanter ekranı: gerçek zamanlı arama (ad + açıklama), kategori ağaç filtresi
-  (breadcrumb + genişletilebilir ağaç), sıralama (Ad / Stok / Tarih, artan-azalan).
+- Envanter ekranı: gerçek zamanlı arama (ad + açıklama, Türkçe duyarsız:
+  "yildiz" → "Yıldız" bulunur), sıralama (Ad / Stok / Tarih, artan-azalan).
+- Favoriler: karttaki yıldıza dokunarak işaretleme; en üstte bağımsız
+  sıralamalı "Favoriler" bölümü, altında bağımsız sıralamalı "Tüm ürünler".
+- Kategoriler ekranı: genişletince içindeki ürünler resimli listelenir
+  (ad + adet; boşsa "Bu kategoride ürün yok.").
 - Satır/kart üzerinden düzenleme (tüm alanlar).
 - Onaylı silme: "Bu ürünü envanterden silmek istediğinize emin misiniz?"
   onayı olmadan silme yapılmaz; onayda kayıt + ilişkili görsel dosyası silinir.
@@ -20,20 +42,13 @@ yerel SQLite, yalnızca karanlık mod.
 
 ## Kurulum
 
-Gerekenler: Flutter SDK 3.22+ (Dart 3.4+).
+Gerekenler: Flutter SDK 3.22+ (Dart 3.4+). Depoda platform iskeleleri
+(`android/`, `windows/`, `linux/`) hazır gelir; yalnızca `android/app/build.gradle`
+ve `android/app/src/main/AndroidManifest.xml` projeye özeldir.
 
 ```sh
 flutter doctor
 flutter pub get
-```
-
-Not: Bu dizin `flutter create` çıktısı değildir; önce iskeleyi üretin,
-ardından bu depodaki `lib/`, `test/`, `pubspec.yaml`,
-`analysis_options.yaml` ve `android/` dosyalarını üzerine yerleştirin:
-
-```sh
-flutter create --platforms=android,windows,linux --org com.chaple --project-name inventory_management /tmp/inv_scaffold
-cp -r /tmp/inv_scaffold/android /tmp/inv_scaffold/windows /tmp/inv_scaffold/linux .
 ```
 
 ## Çalıştırma
