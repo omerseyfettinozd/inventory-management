@@ -47,7 +47,7 @@ class InventoryApp extends StatelessWidget {
     return ChangeNotifierProvider<InventoryProvider>(
       create: (_) => InventoryProvider(images: imageStore)..loadAll(),
       child: MaterialApp(
-        title: 'Envanter Yönetimi',
+        title: 'Inventory Management',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         darkTheme: AppTheme.darkTheme,

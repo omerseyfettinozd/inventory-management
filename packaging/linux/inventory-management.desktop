@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Inventory Management
+GenericName=Inventory Manager
+Comment=Offline-first inventory manager (Türkçe arayüz)
+Exec=inventory_management
+Icon=inventory-management
+Terminal=false
+Categories=Office;Database;Finance;
+Keywords=inventory;stock;envanter;stok;
+StartupWMClass=com.chaple.inventory_management

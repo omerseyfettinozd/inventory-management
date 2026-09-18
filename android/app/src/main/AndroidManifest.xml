@@ -14,7 +14,7 @@
         android:required="false" />
 
     <application
-        android:label="Envanter Yönetimi"
+        android:label="Inventory Management"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

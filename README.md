@@ -9,18 +9,27 @@ yerel SQLite, yalnızca karanlık mod.
 **Linux — tek komutla kur + çalıştır:**
 
 ```sh
-mkdir -p ~/Apps/envanter && curl -sL https://github.com/omerseyfettinozd/inventory-management/releases/latest/download/inventory-management-linux-x64.tar.gz | tar -xz -C ~/Apps/envanter && ~/Apps/envanter/inventory_management
+curl -sL https://github.com/omerseyfettinozd/inventory-management/releases/latest/download/inventory-management-linux-x64.tar.gz | tar -xz -C /tmp && /tmp/inventory-management/install.sh && rm -rf /tmp/inventory-management
 ```
 
-Kurulum gerekmez; dosya `~/Apps/envanter/` altında durur, çalıştırdıkça
-veriler `~/.local/share/inventory_management/` altında oluşur.
+Bu komut uygulamayı `~/.local/share/inventory-management` altına kurar,
+başlatıcı kaydını ve ikonu işler — sonrasında **Alt+Space (veya menüde ara) →
+"Inventory Management"** ile açılır. Sudo istemez. Veriler
+`~/.local/share/inventory_management/` altında oluşur.
 
 **Android:** [Releases](https://github.com/omerseyfettinozd/inventory-management/releases)
 sayfasından `inventory-management-android.apk` dosyasını telefona indirip açın
 (bilinmeyen kaynaklara bir kez izin gerekir).
 
-**Windows:** `flutter build windows` çıktısı Releases'e eklenir
-(Windows makinede derlenir, bkz. Derleme).
+**Windows:** bu makineden derlenemez; Windows bilgisayarda depo kökünden:
+
+```powershell
+flutter build windows --release
+powershell -ExecutionPolicy Bypass -File packaging\windows\Install.ps1
+```
+
+Kurulum `%LocalAppData%\InventoryManagement` altına yapılır ve Başlat
+menüsüne "Inventory Management" kısayolu eklenir (Win tuşu + yazarak bulunur).
 
 ## Özellikler
 
