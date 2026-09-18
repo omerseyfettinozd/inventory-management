@@ -149,6 +149,36 @@ class _InventoryTabState extends State<InventoryTab> {
             hasScrollBody: false,
             child: Center(child: CircularProgressIndicator()),
           )
+        else if (provider.lastError != null && all.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: AppColors.secondaryText,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      provider.lastError!,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () =>
+                          context.read<InventoryProvider>().loadAll(),
+                      child: const Text('Tekrar Dene'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
         else if (all.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,

@@ -102,6 +102,10 @@ class _CategoriesTabState extends State<CategoriesTab> {
   bool _loading = true;
   String? _error;
 
+  /// Artan yukleme sirasi. Eski yukleme gec donerse sonucu yoksayilir;
+  /// bayragin sahipligi her zaman en son yuklemededir.
+  int _reloadSeq = 0;
+
   @override
   void initState() {
     super.initState();
@@ -109,6 +113,7 @@ class _CategoriesTabState extends State<CategoriesTab> {
   }
 
   Future<void> _reload() async {
+    final int seq = ++_reloadSeq;
     setState(() {
       _loading = true;
       _error = null;
@@ -158,7 +163,7 @@ class _CategoriesTabState extends State<CategoriesTab> {
       for (final Product product in allProducts) {
         (grouped[product.categoryId] ??= <Product>[]).add(product);
       }
-      if (!mounted) {
+      if (!mounted || seq != _reloadSeq) {
         return;
       }
       setState(() {
@@ -169,13 +174,23 @@ class _CategoriesTabState extends State<CategoriesTab> {
         _loading = false;
       });
     } catch (e) {
-      if (!mounted) {
+      if (!mounted || seq != _reloadSeq) {
         return;
       }
       setState(() {
         _error = 'Kategoriler yüklenemedi: $e';
         _loading = false;
       });
+    } finally {
+      // Bayrak her durumda kapanir: basari ve hata yollari kendi
+      // setState'inde kapatir; erken donuslerde burasi kapatir.
+      // Dispose sonrasi setState yasaktir, eski yukleme ise bayragin
+      // sahibine (en son yuklemeye) dokunmaz.
+      if (mounted && seq == _reloadSeq && _loading) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 

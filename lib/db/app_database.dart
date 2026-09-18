@@ -13,6 +13,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 // Android'de `databaseFactory` varsayilani (platform kanali) bu paketten
@@ -163,6 +164,27 @@ class AppDatabase {
   Database? _db;
   bool _ffiInitialized = false;
 
+  /// Devam eden acilis. Eszamanli `open()` cagrilari ayni Future'i
+  /// paylasir; ayni dosya iki kez acilmaz.
+  Future<Database>? _openFuture;
+
+  /// Bellek-ici test kancasi. Uretimde her zaman `null`dir; doluyken
+  /// dosya yolu cozumu atlanir (`path_provider` cagrilmaz).
+  String? _testPathOverride;
+
+  /// Testler icin dosya yolu gecersiz kilir (orn. [inMemoryDatabasePath]).
+  /// Uretim davranisini degistirmez; varsayilan `null`dir.
+  @visibleForTesting
+  void setTestPathOverride(String path) {
+    _testPathOverride = path;
+  }
+
+  /// Test gecersiz kilmasini kaldirir.
+  @visibleForTesting
+  void clearTestPathOverride() {
+    _testPathOverride = null;
+  }
+
   /// Acik veritabani. Ilk erisimde olusturulur/acilir.
   Future<Database> get database async {
     final Database? current = _db;
@@ -178,6 +200,10 @@ class AppDatabase {
   /// `getApplicationSupportDirectory()` kullanilir, boylece tasma ve
   /// kullanici-adi degisimine dayanikli tek konum elde edilir.
   Future<String> resolveDatabasePath() async {
+    final String? override = _testPathOverride;
+    if (override != null) {
+      return override;
+    }
     if (!(Platform.isAndroid || Platform.isIOS)) {
       _ensureFfi();
     }
@@ -187,21 +213,64 @@ class AppDatabase {
   }
 
   /// Veritabanini acar (gerekirse olusturur). Idempotent calisir.
+  ///
+  /// Eszamanli cagrilara karsi tek ucan acilis paylasilir: ikinci cagri
+  /// ayni Future'i bekler, ayni dosya iki kez acilmaz. Boylece Linux/FFI
+  /// dosya kilidine takilan cift `openDatabase` yarisi kokten kalkar.
   Future<Database> open() async {
     final Database? current = _db;
     if (current != null && current.isOpen) {
       return current;
     }
-    DatabaseFactory factory = databaseFactory;
-    String dbPath;
-    if (Platform.isAndroid || Platform.isIOS) {
-      dbPath = await resolveDatabasePath();
-    } else {
-      // Windows / Linux (/macOS): FFI destegi zorunludur.
-      _ensureFfi();
-      factory = databaseFactoryFfi;
-      dbPath = await resolveDatabasePath();
+    final Future<Database>? pending = _openFuture;
+    if (pending != null) {
+      return pending;
     }
+    final Future<Database> future = _openLocked();
+    _openFuture = future;
+    try {
+      return await future;
+    } finally {
+      _openFuture = null;
+    }
+  }
+
+  /// Tek acilis islemi. [open] tarafindan serilestirilir.
+  Future<Database> _openLocked() async {
+    final String? override = _testPathOverride;
+    if (override != null) {
+      // Test kancasi: dosya yolu cozumu ve platform dali atlanir.
+      _ensureFfi();
+      _db = await databaseFactoryFfi.openDatabase(
+        override,
+        options: OpenDatabaseOptions(
+          version: kDatabaseVersion,
+          onConfigure: _onConfigure,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
+      );
+      return _db!;
+    }
+    // FFI secimi factory okumadan ONCE yapilir; aksi halde masaustunde
+    // yanlis (platform kanali) factory okunurdu.
+    if (Platform.isAndroid || Platform.isIOS) {
+      final String dbPath = await resolveDatabasePath();
+      _db = await databaseFactory.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          version: kDatabaseVersion,
+          onConfigure: _onConfigure,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
+      );
+      return _db!;
+    }
+    // Windows / Linux (/macOS): FFI destegi zorunludur.
+    _ensureFfi();
+    final DatabaseFactory factory = databaseFactoryFfi;
+    final String dbPath = await resolveDatabasePath();
     _db = await factory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
@@ -227,6 +296,11 @@ class AppDatabase {
     if (_ffiInitialized) {
       return;
     }
+    // Dikkat: sqflite'in global `databaseFactory` okuyucusu masaustunde
+    // henuz atama yapilmamissa `StateError` firlatir; bu yuzden "zaten FFI
+    // mi?" diye global OKUNMAZ, yalnizca yerel bayrak kullanilir.
+    // main.dart acilista `sqfliteFfiInit()` cagirmis olabilir; cift cagri
+    // uretimde zararsizdir (eski davranis aynen korunur).
     sqfliteFfiInit();
     // FFI kullanilan platformlarda global factory de FFI olmalidir,
     // aksi halde sqflite yardimcilari yanlis baglantiyi kullanir.
